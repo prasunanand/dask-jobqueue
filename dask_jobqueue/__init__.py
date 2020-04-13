@@ -8,6 +8,7 @@ from .sge import SGECluster
 from .lsf import LSFCluster
 from .oar import OARCluster
 from .htcondor import HTCondorCluster
+from .awsbatch import AWSBatchCluster
 
 from ._version import get_versions
 

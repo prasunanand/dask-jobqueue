@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class AWSBatchJob(Job):
 	# submit_command = "submitjob"
 	# cancel_command = "canceljob"
-	config_name = "aws-batch"
+	config_name = "awsbatch"
 
 	def __init__(self,
 		client=None,
@@ -27,26 +27,29 @@ class AWSBatchJob(Job):
 		job_extra=None,
 		config_name=None,
 		**kwargs):
+
 		super().__init__(
 			scheduler=scheduler, name=name, config_name=config_name, **kwargs
 		)
-
-		self.client = client or boto3.client('batch')
-		self.account = account or boto3.client('sts').get_caller_identity().get('Account')
-		self.region = aws_region or boto3.session.Session().region_name
 
 		if queue is None:
 			queue = dask.config.get("jobqueue.%s.queue" % self.config_name)
 		if project is None:
 			project = dask.config.get("jobqueue.%s.project" % self.config_name)
-		if resource_spec is None:
-			resource_spec = dask.config.get(
-				"jobqueue.%s.resource-spec" % self.config_name
-			)
 		if walltime is None:
 			walltime = dask.config.get("jobqueue.%s.walltime" % self.config_name)
+		if job_cpu is None:
+			job_cpu = dask.config.get("jobqueue.%s.job-cpu" % self.config_name)
+		if job_mem is None:
+			job_mem = dask.config.get("jobqueue.%s.job-mem" % self.config_name)
 		if job_extra is None:
 			job_extra = dask.config.get("jobqueue.%s.job-extra" % self.config_name)
+
+
+		self.client = client or boto3.client('batch')
+		self.account = account or boto3.client('sts').get_caller_identity().get('Account')
+		self.region = aws_region or boto3.session.Session().region_name
+
 
 		self.job_header = header_template % config
 
@@ -220,4 +223,6 @@ class AWSBatchCluster(JobQueueCluster):
 	""".format(
 		job=job_parameters, cluster=cluster_parameters
 	)
+	print("Init AWSBatchCluster")
 	job_cls = AWSBatchJob
+	config_name = "awsbatch"
